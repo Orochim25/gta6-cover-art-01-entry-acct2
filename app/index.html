@@ -1,1 +1,835 @@
-<!-- placeholder -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' blob: data:; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="data:,">
+<title>Vice Royale Studio</title>
+<style>
+:root{color-scheme:dark;--ink:#131517;--rail:#191c1e;--line:#33363a;--paper:#f8eddf;--muted:#b2aaa1;--gold:#ffc784;--mint:#98d4c4;font:14px system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--paper)}
+button,select,input{font:inherit;color:inherit;accent-color:var(--gold)}button,select,input[type=text]{background:#232629;border:1px solid var(--line);border-radius:5px}
+button,select{min-height:33px;padding:5px 9px}button{cursor:pointer}button:hover,select:hover{border-color:var(--gold)}button:disabled{opacity:.35;cursor:default}:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+button.primary{background:var(--gold);color:#24180e;border-color:var(--gold);font-weight:750}
+header{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;border-bottom:1px solid var(--line);background:#151719}
+.identity{display:flex;align-items:center;gap:11px}.monogram{display:grid;place-items:center;width:39px;height:39px;border:1px solid #975e42;color:var(--gold);font:bold italic 19px Georgia;background:#30221f}
+h1{font:800 18px system-ui;margin:0}small,.micro,h2,output{font:11px ui-monospace,monospace;color:var(--muted)}.identity small{color:var(--mint)}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.spread{justify-content:space-between}.tools button{min-width:34px}
+.workspace{display:grid;grid-template-columns:220px minmax(0,1fr) 226px;min-height:calc(100dvh - 66px)}
+aside{background:var(--rail);padding:0 14px 14px}.left{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line)}
+aside section{padding:13px 0;border-bottom:1px solid var(--line)}aside section:last-child{border:0}
+h2{color:var(--gold);font-weight:700;text-transform:uppercase;margin:0 0 9px}.field{display:grid;gap:5px;margin:8px 0;color:#e6dbcf;font-size:12px}.field input,.field select{width:100%;min-width:0}.field input[type=text]{height:33px;padding:6px 8px}
+.drop{padding:8px;border:1px dashed #79624e;border-radius:5px}.drop.over{background:#413125}.drop button{flex:1}
+.shelf{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}.shelf button{padding:0;min-width:0;overflow:hidden;height:35px;line-height:0}.shelf img{width:100%;height:100%;object-fit:cover;object-position:center 35%}.shelf button[aria-pressed=true]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.layouts{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.layouts button{padding:4px;color:var(--muted);font-size:10px;min-height:42px}.layouts button[aria-pressed=true]{color:var(--gold);border-color:#a0714d;background:#372920}.layouts svg{display:block;margin:0 auto 2px;width:24px;height:15px}
+.grades{display:flex;gap:4px;margin:6px 0}.grades button{flex:1;min-width:0;min-height:14px;padding:0}.grades button[aria-pressed=true]{outline:1px solid var(--paper);outline-offset:1px}
+.desk{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:12px 18px;background:radial-gradient(ellipse at 50% 25%,#302325 0,#17191a 70%)}
+.deskbar,.deskfoot{width:100%;max-width:720px}.deskbar .micro{color:var(--mint)}.sizes button[aria-pressed=true]{border-color:var(--gold);color:var(--gold)}
+.mount{position:relative;line-height:0;max-width:100%;box-shadow:0 14px 45px #000a,0 0 0 1px #7b594e}
+canvas{display:block;max-width:100%;width:auto;height:auto;max-height:max(260px,calc(100dvh - 165px));touch-action:none;cursor:grab}
+canvas:active{cursor:grabbing}#outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:7px 4px;font-size:11px}.checks label{display:flex;align-items:center;gap:3px}.checks input{margin:0}
+#status{min-height:1.3em}.panelread{color:var(--mint)}.cover header,.cover aside,.cover .deskbar,.cover .deskfoot,.cover #outline{display:none}.cover .workspace,.cover .desk{display:block;padding:0;background:#160f18}.cover canvas{width:100vw;height:100dvh;max-height:none;cursor:default}
+@media(max-width:900px){.workspace{grid-template-columns:176px minmax(0,1fr) 178px}aside{padding-inline:9px}.desk{padding-inline:10px}}
+@media(max-width:690px){header{flex-wrap:wrap}.workspace{grid-template-columns:1fr 1fr}.desk{grid-column:1/-1;grid-row:1}.left,.right{border:0}.right{border-left:1px solid var(--line)}canvas{max-height:65dvh}}
+</style>
+</head>
+<body>
+<header>
+  <div class="identity"><div class="monogram" aria-hidden="true">VR</div><div><h1>Vice Royale Studio</h1><small>ART DEPARTMENT / 01</small></div></div>
+  <div class="row tools">
+    <button id="undo" title="Undo (Ctrl or Command + Z)" aria-label="Undo">&#8630;</button>
+    <button id="redo" title="Redo (Ctrl or Command + Shift + Z)" aria-label="Redo">&#8631;</button>
+    <button id="surprise" title="Surprise me (R)">Surprise me</button><button id="reset">Reset</button>
+    <button class="primary" id="save" title="Download PNG (Ctrl or Command + S)">Export PNG</button>
+  </div>
+</header>
+<main class="workspace">
+  <aside class="left" aria-label="Images and composition">
+    <section>
+      <h2>01 / Cast <span id="count"></span></h2>
+      <div class="drop row" id="drop" title="Drop or paste pictures into the studio">
+        <button id="browse">+ Photos</button><button id="demo">Demo</button>
+        <input id="picker" type="file" accept="image/*" multiple hidden>
+      </div>
+      <div class="shelf" id="shelf"></div>
+      <div class="row" style="margin-top:6px"><button id="clear">Clear cast</button></div>
+    </section>
+    <section><h2>02 / Layout</h2><div class="layouts" id="layouts"></div></section>
+    <section>
+      <h2>03 / Grade</h2>
+      <label class="field">Palette<select id="grade"></select></label><div class="grades" id="swatches"></div>
+      <label class="field"><span class="row spread">Intensity <output id="power"></output></span><input id="intensity" type="range" min="0" max="100"></label>
+    </section>
+  </aside>
+  <section class="desk" aria-label="Cover preview">
+    <div class="deskbar row spread"><span class="micro">MASTER PROOF</span><div class="row sizes" id="sizes" aria-label="Canvas aspect ratio"></div></div>
+    <div class="mount"><canvas id="poster" width="900" height="900" aria-label="Vice Royale cover preview"></canvas><svg id="outline" aria-hidden="true"></svg></div>
+    <div class="deskfoot row spread"><span class="micro" id="status" role="status"></span><button id="saveAll">Download all three</button></div>
+  </section>
+  <aside class="right" aria-label="Typography and panel tools">
+    <section>
+      <h2>04 / Type</h2>
+      <label class="field">Title<input type="text" id="title" maxlength="36"></label>
+      <label class="field">Subtitle<input type="text" id="subtitle" maxlength="45"></label>
+      <label class="field">Press quote<input type="text" id="quote" maxlength="60"></label>
+    </section>
+    <section>
+      <h2>05 / Panel <span class="panelread" id="panelNumber"></span></h2>
+      <label class="field">Panel<select id="panel"></select></label>
+      <label class="field">Photo<select id="assign"></select></label>
+      <label class="field">Zoom<input id="zoom" type="range" min="1" max="3" step=".01"></label>
+      <div class="row"><button id="flip" title="Flip horizontally">Flip</button><button id="center">Center</button></div>
+      <label class="field">Swap with<select id="swap"></select></label>
+    </section>
+    <section><h2>06 / Marks</h2><div class="checks" id="marks"></div></section>
+  </aside>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const sampleRoles = {
+  'boulevard.jpg': 'THE DRIVER', 'cast-driver.jpg': 'THE GETAWAY',
+  'cast-boss.jpg': 'THE BOSS', 'cast-insider.jpg': 'THE INSIDER',
+  'cast-rider.jpg': 'THE RIDER', 'pier.jpg': 'THE LOOKOUT',
+};
+const sampleNames = Object.keys(sampleRoles);
+const framing = {
+  'boulevard.jpg':[.47,.31], 'cast-driver.jpg':[.52,.35], 'cast-boss.jpg':[.50,.30],
+  'cast-insider.jpg':[.51,.28], 'cast-rider.jpg':[.52,.36], 'pier.jpg':[.50,.35],
+};
+const rect = (l,t,r,b) => [[l,t],[r,t],[r,b],[l,b]];
+const layouts = {
+  // Four surround areas frame the center. The top surround is a cast diptych.
+  'tiled-grid': {name:'Tiled gold', tiles:[
+    rect(.25,.238,.75,.79),rect(0,.238,.25,.79),rect(0,0,.50,.238),
+    rect(.50,0,1,.238),rect(.75,.238,1,.79),rect(0,.79,1,1),
+  ]},
+  'hero-shards': {name:'Shards',tiles:[
+    [[.31,.23],[.73,.16],[.75,.79],[.27,.79]],[[0,.20],[.31,.23],[.27,.79],[0,.86]],
+    [[0,0],[.49,0],[.51,.1976],[.31,.23],[0,.20]],
+    [[.49,0],[1,0],[1,.24],[.73,.16],[.51,.1976]],
+    [[.73,.16],[1,.24],[1,.83],[.75,.79]],
+    [[0,.86],[.27,.79],[.75,.79],[1,.83],[1,1],[0,1]],
+  ]},
+  'six-panel-hero': {name:'Six frame',tiles:[
+    rect(.30,0,.70,.77),rect(0,0,.30,.38),rect(.70,0,1,.38),
+    rect(0,.38,.30,.77),rect(.70,.38,1,.77),rect(0,.77,1,1),
+  ]},
+  'slash-panels': {name:'Slash',tiles:[
+    [[.35,0],[.68,0],[.45,.50],[.12,.50]],[[0,0],[.35,0],[.12,.50],[0,.50]],
+    [[.68,0],[1,0],[1,.50],[.45,.50]],[[0,.50],[.31,.50],[.18,1],[0,1]],
+    [[.31,.50],[.67,.50],[.57,1],[.18,1]],[[.67,.50],[1,.50],[1,1],[.57,1]],
+  ]},
+  'contact-sheet': {name:'Contact',tiles:[rect(0,0,.333,.5),rect(.333,0,.667,.5),rect(.667,0,1,.5),rect(0,.5,.333,1),rect(.333,.5,.667,1),rect(.667,.5,1,1)]},
+  'split-deck': {name:'Split deck',tiles:[rect(0,0,.59,.59),rect(.59,0,1,.31),rect(.59,.31,1,.59),rect(0,.59,.25,1),rect(.25,.59,.63,1),rect(.63,.59,1,1)]},
+  'wide-lead': {name:'Wide lead',tiles:[rect(0,0,1,.52),rect(0,.52,.20,1),rect(.20,.52,.40,1),rect(.40,.52,.60,1),rect(.60,.52,.80,1),rect(.80,.52,1,1)]},
+  'double-feature': {name:'Double',tiles:[rect(0,.20,.50,.80),rect(.50,.20,1,.80),rect(0,0,.50,.20),rect(.50,0,1,.20),rect(0,.80,.50,1),rect(.50,.80,1,1)]},
+  'sidecar': {name:'Sidecar',tiles:[rect(0,0,.56,.74),rect(.56,0,1,.25),rect(.56,.25,1,.50),rect(.56,.50,1,.74),rect(0,.74,.56,1),rect(.56,.74,1,1)]},
+};
+const grades = {
+  'sunset-punch':['Sunset punch','contrast(1.12) saturate(1.24) sepia(.19)','#ffab60','#452842'],
+  'neon-coast':['Neon coast','contrast(1.15) saturate(1.3)','#75e8ef','#6d266f'],
+  'miami-heat':['Miami heat','contrast(1.12) saturate(1.36) sepia(.08)','#ff7597','#532839'],
+  'poolside':['Poolside','contrast(1.05) saturate(.85)','#9ce3cb','#24526a'],
+  'chrome':['Chrome','grayscale(1) contrast(1.24)','#dbe5f3','#32303d'],
+  'after-dark':['After dark','brightness(.83) contrast(1.22) saturate(1.14)','#a09cf7','#262044'],
+  'copper-film':['Copper film','sepia(.52) contrast(1.18)','#efb081','#492e25'],
+  'bleached':['Bleached','saturate(.55) brightness(1.12) contrast(.93)','#f4e4bc','#60667a'],
+};
+const marks = {press:'Press',seal:'Pre-order',heat:'Heat',tags:'Tags',palms:'Palms',billing:'Billing',rating:'Rating',corner:'Corner'};
+const formats = [[1920,1080,'16:9'],[1080,1350,'4:5'],[1080,1080,'1:1']];
+const fresh = () => ({
+  layout:'tiled-grid', grade:'sunset-punch', intensity:100, title:'VICE ROYALE',
+  subtitle:'Golden Hour Heist', quote:'A heist with a hell of a view.',
+  marks:Object.fromEntries(Object.keys(marks).map(key=>[key,true])), photos:[], panels:[], format:2,
+});
+const query = new URLSearchParams(location.search);
+const shot = ['cover','editor'].includes(query.get('shot')) ? query.get('shot') : null;
+const media = new Map();
+const past = [], future = [];
+let state = fresh(), active = 0, showPanel = false, drag = null, queued = false, edit = null, busy = false;
+const clamp = (x,l,h) => Math.max(l,Math.min(h,x));
+const clone = x => structuredClone(x);
+const panelAt = (project,i) => project.panels[i] || {};
+const photoAt = (project,i) => {
+  const preferred = panelAt(project,i).photo;
+  return project.photos.includes(preferred) ? preferred : project.photos[i % project.photos.length];
+};
+const own = (obj,key) => Object.prototype.hasOwnProperty.call(obj,key);
+const panelEdit = (project,i=active) => project.panels[i] ||= {};
+const make = (tag,props={}) => Object.assign(document.createElement(tag),props);
+const status = message => $('status').textContent = message;
+
+function tilesFor(project,w,h) {
+  return layouts[project.layout].tiles.map(points=>points.map(([x,y])=>[x*w,y*h]));
+}
+function trace(c,points) {
+  c.beginPath();
+  c.moveTo(...points[0]);
+  for (const p of points.slice(1)) c.lineTo(...p);
+  c.closePath();
+}
+function bounds(points) {
+  const xs = points.map(p=>p[0]), ys = points.map(p=>p[1]);
+  return [Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];
+}
+function inside(points,x,y) {
+  let hit = false;
+  for (let i=0,j=points.length-1;i<points.length;j=i++) {
+    const [a,b] = points[i], [m,n] = points[j];
+    if ((b>y)!==(n>y) && x<(m-a)*(y-b)/(n-b)+a) hit=!hit;
+  }
+  return hit;
+}
+function ramp(c,x,y,r,b,stops) {
+  const paint = c.createLinearGradient(x,y,r,b);
+  for (const [at,color] of stops) paint.addColorStop(at,color);
+  return paint;
+}
+function pill(c,x,y,w,h,r,fill,stroke) {
+  c.beginPath();
+  c.roundRect(x,y,w,h,r);
+  if (fill) { c.fillStyle=fill; c.fill(); }
+  if (stroke) { c.strokeStyle=stroke; c.stroke(); }
+}
+function text(c,value,x,y,font,color,align='left',max) {
+  c.font=font; c.fillStyle=color; c.textAlign=align; c.textBaseline='alphabetic';
+  if (max === undefined) c.fillText(value,x,y);
+  else c.fillText(value,x,y,max);
+}
+function palm(c,x,y,s,lean,color) {
+  c.save(); c.translate(x,y); c.scale(s,s); c.fillStyle=color;
+  c.beginPath(); c.moveTo(-4,0); c.quadraticCurveTo(lean*.1,-53,lean,-83);
+  c.lineTo(lean+4,-83); c.quadraticCurveTo(lean*.53,-45,5,0); c.fill();
+  for (let i=0;i<8;i++) {
+    const dir=i<4?-1:1, j=i%4;
+    c.beginPath(); c.moveTo(lean,-82);
+    c.quadraticCurveTo(lean+(17+j*5)*dir,-110+j*4,lean+(18+j*9)*dir,-110+j*14);
+    c.quadraticCurveTo(lean+10*dir,-91+j*3,lean,-82); c.fill();
+  }
+  c.restore();
+}
+const skies = [
+  ['#2b173b','#ed5c50','#ffcb76',.68,.39],['#141f3f','#686796','#f7a45f',.24,.52],
+  ['#120f32','#b85287','#ed9271',.52,.29],['#152c39','#448285','#ddaa7c',.72,.48],
+  ['#341c41','#ef7059','#f9c37d',.39,.42],['#162038','#9f5474','#efac83',.82,.56],
+];
+const sceneBank = skies.map(([top,mid,bottom,sx,sy],i)=>{
+  const canvas=make('canvas',{width:560,height:620}), c=canvas.getContext('2d'), w=560,h=620;
+  c.fillStyle=ramp(c,0,0,0,h,[[0,top],[.58,mid],[1,bottom]]); c.fillRect(0,0,w,h);
+  const halo=c.createRadialGradient(sx*w,sy*h,1,sx*w,sy*h,180);
+  halo.addColorStop(0,bottom); halo.addColorStop(1,'transparent');
+  c.fillStyle=halo; c.fillRect(0,0,w,h);
+  c.fillStyle='#ffdfae'; c.beginPath(); c.arc(sx*w,sy*h,58-i*4,0,Math.PI*2); c.fill();
+  c.fillStyle=top;
+  for (let j=0,x=-19;x<w;j++) {
+    const bw=21+(j*19+i*7)%42, bh=25+(j*59+i*31)%126, by=h*.73-bh;
+    c.fillRect(x,by,bw,bh+2);
+    if ((j+i)%3===0) c.fillRect(x+bw*.64,by-19,2,19);
+    c.fillStyle='#ffc88588';
+    for (let yy=by+8;yy<h*.72;yy+=12) for(let xx=x+6;xx<x+bw-3;xx+=9) {
+      if ((xx+yy+i)%4<2) c.fillRect(xx,yy,3,3);
+    }
+    c.fillStyle=top; x+=bw+3;
+  }
+  c.fillStyle=ramp(c,0,h*.73,0,h,[[0,top],[1,'#100e1c']]); c.fillRect(0,h*.73,w,h*.27);
+  for(let j=0;j<23;j++) {
+    c.fillStyle=j%2?'#ffd3a23b':'#fa7e7440';
+    c.fillRect((j*79+i*26)%w,h*.76+j*5,24+(j*23)%110,2);
+  }
+  palm(c,w*(.10+i*.045),h,.9+i*.13,22,'#15101d');
+  palm(c,w*.93,h,1.64-i*.09,-18,'#15101d');
+  return canvas;
+});
+
+function layImage(c,image,box,p,focus,filter,amount) {
+  const [l,t,r,b]=box, w=r-l,h=b-t;
+  const iw=image.naturalWidth||image.width, ih=image.naturalHeight||image.height;
+  const scale=Math.max(w/iw,h/ih)*(p.zoom||1);
+  const dw=iw*scale,dh=ih*scale;
+  const x=l+clamp(w/2-focus[0]*dw+(p.x||0)*w,w-dw,0);
+  const y=t+clamp(h/2-focus[1]*dh+(p.y||0)*h,h-dh,0);
+  c.save();
+  if(p.flip){c.translate(l+r,0); c.scale(-1,1);}
+  c.drawImage(image,x,y,dw,dh);
+  if(amount>0){
+    c.filter=filter; c.globalAlpha=amount; c.drawImage(image,x,y,dw,dh);
+  }
+  c.restore();
+}
+function paintTile(c,project,i,points) {
+  const box=bounds(points), [l,t,r,b]=box;
+  const id=photoAt(project,i), image=media.get(id)?.image || sceneBank[i%sceneBank.length];
+  const [,filter,light,dark]=grades[project.grade], amount=project.intensity/100;
+  c.save(); trace(c,points); c.clip();
+  layImage(c,image,box,panelAt(project,i),framing[id]||[.50,.43],filter,amount);
+  if(amount>0) {
+    c.globalAlpha=.23*amount; c.globalCompositeOperation='soft-light';
+    c.fillStyle=ramp(c,l,t,r,b,[[0,light],[.52,light],[1,dark]]);
+    c.fillRect(l,t,r-l,b-t);
+  }
+  c.restore();
+}
+function composeFurniture(w,h,u,project,tagRects) {
+  const mono = n=>'700 '+n*u+'px ui-monospace, monospace';
+  const blocked = tagRects;
+  const titleY=h*.744, subtitleY=h*.817, footer=h-26*u;
+  // Keep role plates out of the title stack and the furniture in the corners.
+  blocked.push([w*.065,h*.55,w*.935,h*.837]);
+  if(project.marks.press) blocked.push([w*.20,h*.84,w*.80,h*.921]);
+  if(project.marks.seal) blocked.push([w-126*u,h*.60-49*u,w-22*u,h*.60+49*u]);
+  if(project.marks.heat || project.marks.tags) blocked.push([w-181*u,0,w,75*u]);
+  if(project.marks.corner) blocked.push([0,h-101*u,98*u,h]);
+  if(project.marks.rating) blocked.push([w-102*u,h-106*u,w,h]);
+  if(project.marks.billing) blocked.push([w*.21,h-54*u,w*.79,h]);
+  return {mono,titleY,subtitleY,footer};
+}
+function drawRole(c,project,i,points,u,blocked) {
+  const id=photoAt(project,i);
+  if(!own(sampleRoles,id)||!media.has(id)) return;
+  const role=sampleRoles[id], [l,t,r,b]=bounds(points), height=22*u, pad=13*u;
+  const font='700 '+11*u+'px ui-monospace, monospace';
+  c.font=font;
+  const width=c.measureText(role).width+15*u;
+  // Walk inward from the top-left edge for irregular tiles and reserved art.
+  for(let y=t+pad;y+height<=b-pad;y+=9*u) {
+    for(let x=l+pad;x+width<=r-pad;x+=9*u) {
+      const box=[x,y,x+width,y+height];
+      if(blocked.some(([a,b,e,f])=>x<e&&x+width>a&&y<f&&y+height>b))continue;
+      if(![[x-2*u,y],[x+width+2*u,y],[x+width+2*u,y+height],[x-2*u,y+height]].every(([a,b])=>inside(points,a,b)))continue;
+      c.lineWidth=u;
+      pill(c,x,y,width,height,6*u,'#21191eeb','#e9b58e91');
+      text(c,role,x+7.5*u,y+14.5*u,font,'#ffdc9e');
+      blocked.push(box);
+      return;
+    }
+  }
+}
+function drawTitle(c,w,h,u,project,grid) {
+  const {titleY:y,subtitleY}=grid, x=w/2;
+  const title=project.title.trim().toUpperCase();
+  if(title){
+    c.save(); c.translate(x,y); c.transform(1,0,-.11,1,0,0);
+    const size=Math.min(227*u,h*.196);
+    c.font='1000 '+size+'px Impact, "Arial Black", system-ui, sans-serif';
+    c.textAlign='center'; c.textBaseline='alphabetic'; c.lineJoin='round';
+    const metrics=c.measureText(title), ascent=metrics.actualBoundingBoxAscent||size*.75;
+    c.scale(Math.min(1.37,w*.80/metrics.width),1);
+    c.strokeStyle='#231122'; c.lineWidth=14*u;
+    c.strokeText(title,9*u,15*u);
+    for(let step=15;step>=1;step--){
+      c.fillStyle=step>8?'#4f223b':'#9c4750';
+      c.fillText(title,step*.51*u,step*.98*u);
+    }
+    c.strokeStyle='#3c1728'; c.lineWidth=8*u; c.strokeText(title,0,0);
+    c.strokeStyle='#ffe6ab'; c.lineWidth=2.8*u; c.strokeText(title,0,0);
+    const bands=[[0,'#fff6ce'],[.28,'#ffdf91'],[.598,'#ffae67'],[.60,'#8c3951'],[.62,'#8c3951'],[.623,'#ffc382'],
+      [.698,'#ffe1a9'],[.70,'#8c3951'],[.727,'#8c3951'],[.73,'#ffad75'],
+      [.801,'#ffc185'],[.803,'#8c3951'],[.834,'#8c3951'],[.837,'#ff9973'],[1,'#ef7274']];
+    c.fillStyle=ramp(c,0,-ascent,0,2*u,bands);
+    c.fillText(title,0,0); c.restore();
+  }
+  if(project.subtitle.trim()){
+    c.save();
+    const size=Math.min(57*u,h*.055), script='italic bold '+size+'px "Brush Script MT", "Segoe Script", Georgia, cursive';
+    c.translate(x,subtitleY); c.rotate(-.055);
+    c.font=script; c.textAlign='center'; c.textBaseline='alphabetic';
+    c.lineJoin='round'; c.lineWidth=7*u; c.strokeStyle='#461e38';
+    c.strokeText(project.subtitle,0,0,w*.69);
+    c.shadowColor='#ff467e'; c.shadowBlur=15*u;
+    c.lineWidth=2*u; c.strokeStyle='#f45d89'; c.strokeText(project.subtitle,0,0,w*.69);
+    c.fillStyle='#ffdeec'; c.fillText(project.subtitle,0,0,w*.69);
+    c.restore();
+  }
+}
+function paintPoster(c,w,h,u,project,grid) {
+  const {mono,footer}=grid, m=project.marks;
+  const gold='#ffce90', paper='#fff0cd', soft='#d2aa91';
+  c.fillStyle=ramp(c,0,h*.51,0,h,[[0,'#1b101a00'],[.27,'#21121d67'],[.68,'#1c101bd9'],[1,'#150e17']]);
+  c.fillRect(0,h*.51,w,h*.49);
+  if(m.palms){
+    c.save();
+    c.fillStyle=ramp(c,0,h-158*u,0,h,[[0,'#190f1700'],[1,'#190f17']]); c.fillRect(0,h-158*u,w,158*u);
+    for(const [x,s,lean] of [[.022,1.04,25],[.086,.57,16],[.16,.42,-15],[.84,.46,21],[.91,.65,-11],[.97,1.03,-25]]){
+      palm(c,w*x,h-33*u,s*u,lean,'#1c111d');
+    }
+    c.restore();
+  }
+  if(m.tags){
+    c.lineWidth=u;
+    pill(c,w-166*u,16*u,150*u,25*u,4*u,'#291d26e8','#9f6e5d');
+    text(c,'VICE CITY  /  VOL. 06',w-91*u,33*u,mono(10.5),paper,'center');
+  }
+  if(m.heat){
+    pill(c,w-93*u,47*u,77*u,20*u,10*u,'#f3a45b');
+    text(c,'HEAT  /  06',w-54.5*u,61*u,mono(9.5),'#402021','center');
+  }
+  if(m.seal){
+    c.save(); c.translate(w-74*u,h*.60); c.rotate(.13);
+    for(const [rad,fill,stroke] of [[44,'#301829f5',gold],[38,null,'#a26d68']]){
+      c.beginPath(); c.arc(0,0,rad*u,0,Math.PI*2);
+      if(fill){c.fillStyle=fill;c.fill();} c.lineWidth=1.3*u;c.strokeStyle=stroke;c.stroke();
+    }
+    text(c,'◆',0,-12*u,mono(13),gold,'center');
+    text(c,'PRE-ORDER',0,7*u,mono(10.7),paper,'center');
+    text(c,'EDITION 01',0,22*u,mono(7.7),soft,'center');
+    c.restore();
+  }
+  drawTitle(c,w,h,u,project,grid);
+  if(m.press){
+    text(c,'★ ★ ★ ★ ★',w/2,h*.866,'700 '+20*u+'px system-ui',gold,'center');
+    if(project.quote.trim())text(c,'“'+project.quote+'”',w/2,h*.895,'italic '+18*u+'px Georgia',paper,'center',w*.57);
+  }
+  if(m.billing){
+    const rule=h-51*u;
+    c.fillStyle='#c88e6875';c.fillRect(w*.24,rule,w*.52,u);
+    text(c,'A VICE ROYALE PRODUCTION',w/2,footer-6*u,mono(12),paper,'center');
+    text(c,'ORIGINAL CAST   /   SUNSET DISTRICT   /   VOL. 006',w/2,footer+10*u,mono(8.5),soft,'center');
+  }
+  if(m.corner){
+    c.lineWidth=u; pill(c,17*u,h-72*u,55*u,54*u,3*u,'#261723',gold);
+    text(c,'VR',44.5*u,h-39*u,'italic 900 '+27*u+'px Georgia',paper,'center');
+    text(c,'STUDIO',44.5*u,h-26*u,mono(7.6),gold,'center');
+  }
+  if(m.rating){
+    c.lineWidth=1.3*u;
+    pill(c,w-79*u,h-73*u,62*u,55*u,2*u,'#f5e7cf','#211521');
+    text(c,'M',w-48*u,h-43*u,'1000 '+30*u+'px system-ui','#211521','center');
+    text(c,'MATURE 17+',w-48*u,h-27*u,mono(8),'#211521','center');
+  }
+}
+function render(canvas,w,h,project=state) {
+  canvas.width=w; canvas.height=h;
+  const c=canvas.getContext('2d',{alpha:false});
+  const u=Math.min(w,h)/1000, tiles=tilesFor(project,w,h);
+  c.imageSmoothingQuality='high';
+  c.fillStyle='#1e1326'; c.fillRect(0,0,w,h);
+  tiles.forEach((tile,i)=>paintTile(c,project,i,tile));
+  c.strokeStyle=project.layout==='tiled-grid'?'#e9b58e':'#1e1326';
+  c.lineWidth=(project.layout==='tiled-grid'?2:8)*u;
+  c.lineJoin='round';
+  for(const tile of tiles){trace(c,tile);c.stroke();}
+  const reserved=[],grid=composeFurniture(w,h,u,project,reserved);
+  paintPoster(c,w,h,u,project,grid);
+  tiles.forEach((tile,i)=>drawRole(c,project,i,tile,u,reserved));
+  c.strokeStyle='#e9b58e';c.lineWidth=2*u;
+  c.strokeRect(5*u,5*u,w-10*u,h-10*u);
+}
+
+const projectKey = 'vice-royale.project.v1';
+let database;
+function photoStore() {
+  return database ||= new Promise((resolve,reject)=>{
+    const req=indexedDB.open('vice-royale.photos',1);
+    req.onupgradeneeded=()=>req.result.createObjectStore('blobs');
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function photoRecord(id,blob) {
+  const db=await photoStore();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction('blobs',blob?'readwrite':'readonly'), store=tx.objectStore('blobs');
+    const req=blob?store.put(blob,id):store.get(id);
+    tx.oncomplete=()=>resolve(req.result);
+    tx.onabort=tx.onerror=()=>reject(tx.error||req.error);
+  });
+}
+async function register(id,blob,label) {
+  const url=URL.createObjectURL(blob), image=new Image();
+  image.src=url;
+  try {
+    await image.decode();
+    if(!image.naturalWidth)throw new Error('Empty image');
+    media.set(id,{url,image,label});
+  } catch(error) {
+    URL.revokeObjectURL(url); throw error;
+  }
+}
+async function loadSamples(names,record) {
+  const wanted=names.filter(name=>own(sampleRoles,name));
+  const results=await Promise.allSettled(wanted.map(async name=>{
+    if(media.has(name))return;
+    const response=await fetch('samples/'+name);
+    if(!response.ok)throw new Error('Local sample unavailable');
+    await register(name,await response.blob(),sampleRoles[name]);
+  }));
+  const available=wanted.filter((_,i)=>results[i].status==='fulfilled');
+  if(record) {
+    update(next=>{next.photos=available;next.panels=[];},available.length===wanted.length?'Demo cast loaded.':'Some samples could not be loaded.');
+  }
+  return available;
+}
+async function addFiles(items) {
+  if(shot || busy)return;
+  finishEdit();
+  const images=Array.from(items).filter(file=>!file.type||file.type.startsWith('image/'));
+  const room=9-state.photos.length;
+  if(!room || !images.length){status(room?'No image files found.':'Cast is full (9 photos).');return;}
+  busy=true;
+  const loaded=[];
+  let storageFailed=false, decodeFailed=0;
+  try {
+    for(const file of images){
+      if(loaded.length>=room)break;
+      const id='upload-'+(typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
+      try {
+        await register(id,file,file.name||'Pasted photo');
+      } catch {
+        decodeFailed++; continue;
+      }
+      loaded.push(id);
+      try{await photoRecord(id,file);}catch{storageFailed=true;}
+    }
+    if(loaded.length){
+      const added=loaded.slice(0,9-state.photos.length);
+      update(next=>next.photos.push(...added),added.length+' photo'+(added.length===1?'':'s')+' added.'+
+        (storageFailed?' Image storage unavailable.':decodeFailed?' Some images could not be decoded.':''));
+    }else status('Could not decode the selected images.');
+  } finally {busy=false;}
+}
+async function restore() {
+  try {
+    const raw=localStorage.getItem(projectKey);
+    if(!raw)return false;
+    const saved=JSON.parse(raw), base=fresh();
+    if(!saved||!Array.isArray(saved.photos))return false;
+    const names=saved.photos.filter(x=>typeof x==='string').slice(0,9);
+    await loadSamples(names,false);
+    await Promise.allSettled(names.filter(x=>x.startsWith('upload-')).map(async id=>{
+      const blob=await photoRecord(id);
+      if(blob)await register(id,blob,blob.name||'Uploaded photo');
+    }));
+    const number=(x,fallback,min,max)=>Number.isFinite(x)?clamp(x,min,max):fallback;
+    state={
+      ...base,
+      layout:own(layouts,saved.layout)?saved.layout:base.layout,
+      grade:own(grades,saved.grade)?saved.grade:base.grade,
+      intensity:number(saved.intensity,base.intensity,0,100),
+      format:Number.isInteger(saved.format)?number(saved.format,2,0,2):2,
+      photos:names.filter(name=>media.has(name)),
+    };
+    for(const [key,len] of [['title',36],['subtitle',45],['quote',60]]) {
+      if(typeof saved[key]==='string')state[key]=saved[key].slice(0,len);
+    }
+    for(const key of Object.keys(marks))if(typeof saved.marks?.[key]==='boolean')state.marks[key]=saved.marks[key];
+    if(Array.isArray(saved.panels))state.panels=saved.panels.slice(0,6).map(p=>({
+      photo:state.photos.includes(p?.photo)?p.photo:undefined, x:number(p?.x,0,-3,3),y:number(p?.y,0,-3,3),
+      zoom:number(p?.zoom,1,1,3),flip:p?.flip===true,
+    }));
+    return true;
+  }catch{return false;}
+}
+function persist() {
+  if(!shot)try{localStorage.setItem(projectKey,JSON.stringify(state));}catch{}
+}
+function stash(before) {
+  if(JSON.stringify(before)===JSON.stringify(state))return;
+  past.push(before);
+  if(past.length>50)past.shift();
+  future.length=0;
+}
+function finishEdit() {
+  if(!edit)return;
+  stash(edit.before);
+  edit=null;
+  persist();
+  refreshHistory();
+}
+function update(change,message) {
+  finishEdit();
+  const before=clone(state);
+  change(state);
+  stash(before);
+  persist();
+  refresh();
+  requestPaint();
+  if(message)status(message);
+}
+function travel(back) {
+  finishEdit();
+  const from=back?past:future,to=back?future:past;
+  if(!from.length)return;
+  to.push(state); state=from.pop();
+  persist(); refresh(); requestPaint();
+  status(back?'Edit undone.':'Edit restored.');
+}
+function requestPaint() {
+  if(queued||shot)return;
+  queued=true;
+  requestAnimationFrame(()=>{
+    queued=false; paintPreview();
+  });
+}
+function paintPreview() {
+  const [fw,fh]=formats[state.format];
+  const scale=900/Math.max(fw,fh);
+  const w=shot==='cover'?Math.max(1,innerWidth):Math.round(fw*scale);
+  const h=shot==='cover'?Math.max(1,innerHeight):Math.round(fh*scale);
+  render($('poster'),w,h);
+  outline();
+}
+const svg=tag=>document.createElementNS('http://www.w3.org/2000/svg',tag);
+function outline() {
+  const layer=$('outline'), canvas=$('poster');
+  layer.replaceChildren();
+  if(shot||!showPanel)return;
+  layer.setAttribute('viewBox','0 0 '+canvas.width+' '+canvas.height);
+  const shape=svg('polygon');
+  shape.setAttribute('points',tilesFor(state,canvas.width,canvas.height)[active].map(p=>p.join(',')).join(' '));
+  shape.setAttribute('fill','none');
+  shape.setAttribute('stroke','#a8e9d8');
+  shape.setAttribute('stroke-width','2');
+  shape.setAttribute('vector-effect','non-scaling-stroke');
+  layer.append(shape);
+}
+function refreshHistory() {
+  $('undo').disabled=!past.length;
+  $('redo').disabled=!future.length;
+}
+const option = (value,label) => make('option',{value,textContent:label});
+function pressed(el,yes){el.setAttribute('aria-pressed',String(yes));}
+function selectPanel(i) {
+  finishEdit(); active=i; showPanel=true;
+  refresh(); outline();
+}
+function refreshPanel() {
+  const panels=layouts[state.layout].tiles;
+  active=clamp(active,0,panels.length-1);
+  const p=panelAt(state,active);
+  $('panelNumber').textContent=String(active+1).padStart(2,'0');
+  $('panel').replaceChildren(...panels.map((_,i)=>option(i,'Panel '+(i+1))));
+  $('panel').value=active;
+  $('swap').replaceChildren(option('','Select a panel'),...panels.flatMap((_,i)=>i===active?[]:[option(i,'Panel '+(i+1))]));
+  $('assign').replaceChildren(option('','Auto'),...state.photos.map(id=>option(id,media.get(id)?.label||id)));
+  $('assign').value=p.photo||'';
+  $('assign').disabled=!state.photos.length;
+  $('zoom').value=p.zoom||1;
+  pressed($('flip'),!!p.flip);
+}
+function refresh() {
+  for(const key of ['title','subtitle','quote','grade','intensity'])if($(key).value!==String(state[key]))$(key).value=state[key];
+  $('power').value=state.intensity+'%';
+  $('count').textContent='· '+state.photos.length+'/9';
+  for(const key of Object.keys(marks))$('mark-'+key).checked=state.marks[key];
+  for(const button of $('layouts').children)pressed(button,button.dataset.key===state.layout);
+  for(const button of $('swatches').children)pressed(button,button.dataset.key===state.grade);
+  for(const button of $('sizes').children)pressed(button,Number(button.dataset.key)===state.format);
+  $('clear').disabled=!state.photos.length;
+  const current=photoAt(state,active);
+  $('shelf').replaceChildren(...state.photos.map(id=>{
+    const asset=media.get(id), button=make('button',{title:asset.label});
+    button.setAttribute('aria-label',asset.label);
+    button.append(make('img',{src:asset.url,alt:''}));
+    pressed(button,id===current);
+    button.onclick=()=>{showPanel=true;update(next=>{panelEdit(next).photo=id;});};
+    return button;
+  }));
+  refreshPanel(); refreshHistory();
+}
+function bindInput(id,write,after) {
+  const input=$(id);
+  input.addEventListener('input',()=>{
+    if(edit?.id!==id){
+      finishEdit();
+      edit={id,before:clone(state)};
+    }
+    write(input.value);
+    after?.();
+    persist(); requestPaint();
+  });
+  input.addEventListener('change',finishEdit);
+  input.addEventListener('blur',finishEdit);
+}
+function configure() {
+  for(const [key,{name,tiles}] of Object.entries(layouts)){
+    const button=make('button',{title:name}), glyph=svg('svg');
+    glyph.setAttribute('viewBox','0 0 40 24'); glyph.setAttribute('aria-hidden','true');
+    for(const tile of tiles){
+      const path=svg('polygon');
+      path.setAttribute('points',tile.map(([x,y])=>(1+x*38)+','+(1+y*22)).join(' '));
+      path.setAttribute('fill','currentColor'); path.setAttribute('fill-opacity','.22');
+      path.setAttribute('stroke','currentColor'); path.setAttribute('stroke-width','1');
+      glyph.append(path);
+    }
+    button.dataset.key=key; button.append(glyph,name);
+    button.onclick=()=>{active=0;showPanel=false;update(next=>{next.layout=key;});};
+    $('layouts').append(button);
+  }
+  for(const [key,[name,,light,dark]] of Object.entries(grades)){
+    $('grade').append(option(key,name));
+    const button=make('button',{title:name});
+    button.setAttribute('aria-label',name);
+    button.dataset.key=key;button.style.background='linear-gradient(130deg,'+dark+','+light+')';
+    button.onclick=()=>update(next=>{next.grade=key;});
+    $('swatches').append(button);
+  }
+  for(const [key,name] of Object.entries(marks)){
+    const field=make('label'), box=make('input',{type:'checkbox',id:'mark-'+key});
+    box.onchange=()=>update(next=>{next.marks[key]=box.checked;});
+    field.append(box,name);$('marks').append(field);
+  }
+  formats.forEach(([w,h,label],i)=>{
+    const button=make('button',{textContent:label,title:w+' × '+h});
+    button.dataset.key=i;button.onclick=()=>update(next=>{next.format=i;});
+    $('sizes').append(button);
+  });
+  refresh();
+}
+function wire() {
+  for(const key of ['title','subtitle','quote'])bindInput(key,value=>{state[key]=value;});
+  bindInput('intensity',value=>{state.intensity=Number(value);},()=>{$('power').value=state.intensity+'%';});
+  bindInput('zoom',value=>{showPanel=true;panelEdit(state).zoom=Number(value);});
+  $('grade').onchange=()=>update(next=>{next.grade=$('grade').value;});
+  $('panel').onchange=()=>selectPanel(Number($('panel').value));
+  $('assign').onchange=()=>{showPanel=true;update(next=>{panelEdit(next).photo=$('assign').value||undefined;});};
+  $('flip').onclick=()=>{showPanel=true;update(next=>{const p=panelEdit(next);p.flip=!p.flip;});};
+  $('center').onclick=()=>{showPanel=true;update(next=>{Object.assign(panelEdit(next),{x:0,y:0,zoom:1});});};
+  $('swap').onchange=()=>{
+    if($('swap').value==='')return;
+    const j=Number($('swap').value), i=active;
+    showPanel=true;
+    update(next=>{
+      const a={...panelAt(next,i),photo:photoAt(next,i)},b={...panelAt(next,j),photo:photoAt(next,j)};
+      next.panels[i]=b; next.panels[j]=a;
+    });
+  };
+  $('undo').onclick=()=>travel(true); $('redo').onclick=()=>travel(false);
+  $('surprise').onclick=surprise;
+  $('reset').onclick=async()=>{
+    const photos=await loadSamples(sampleNames,false);
+    update(next=>Object.assign(next,fresh(),{photos}),'Studio reset.');
+  };
+  $('browse').onclick=()=>$('picker').click();
+  $('picker').onchange=()=>{addFiles($('picker').files);$('picker').value='';};
+  $('clear').onclick=()=>update(next=>{next.photos=[];next.panels=[];},'Cast cleared.');
+  $('demo').onclick=()=>loadSamples(sampleNames,true);
+  const drop=$('drop');
+  document.addEventListener('dragover',event=>{
+    if(!Array.from(event.dataTransfer.types).includes('Files'))return;
+    event.preventDefault(); drop.classList.add('over');
+  });
+  document.addEventListener('dragleave',event=>{if(!event.relatedTarget)drop.classList.remove('over');});
+  document.addEventListener('drop',event=>{
+    if(!event.dataTransfer.files.length)return;
+    event.preventDefault();drop.classList.remove('over');addFiles(event.dataTransfer.files);
+  });
+  document.addEventListener('paste',event=>{
+    const images=Array.from(event.clipboardData?.files||[]).filter(x=>x.type.startsWith('image/'));
+    if(images.length){event.preventDefault();addFiles(images);}
+  });
+  $('save').onclick=()=>exportSizes([state.format]);
+  $('saveAll').onclick=()=>exportSizes([0,1,2]);
+  wireCanvas();
+  document.addEventListener('keydown',keys);
+}
+function surprise() {
+  const choose=list=>list[Math.floor(Math.random()*list.length)];
+  const variants=[['VICE ROYALE','Golden Hour Heist'],['VICE ROYALE','Burn the Alibi'],['VICE ROYALE','Last Light on Ocean Drive'],['VICE ROYALE','Paradise on the Run']];
+  update(next=>{
+    next.layout=choose(Object.keys(layouts).filter(k=>k!==next.layout));
+    next.grade=choose(Object.keys(grades).filter(k=>k!==next.grade));
+    next.intensity=70+Math.floor(Math.random()*31);
+    [next.title,next.subtitle]=choose(variants);
+    next.panels=[];
+    if(next.photos.length>1)next.photos.push(...next.photos.splice(0,1+Math.floor(Math.random()*(next.photos.length-1))));
+  },'New composition.');
+}
+function keys(event) {
+  if(event.defaultPrevented)return;
+  const command=event.ctrlKey||event.metaKey, key=event.key.toLowerCase();
+  if(command&&key==='s'){event.preventDefault();exportSizes([state.format]);return;}
+  if(event.target.closest?.('input[type=text],textarea,[contenteditable]'))return;
+  if(command&&['z','y'].includes(key)){event.preventDefault();travel(key==='z'&&!event.shiftKey);return;}
+  if(command||event.altKey||event.target.closest?.('button,select,input'))return;
+  if(key==='r')surprise();
+  else if(key==='f')$('flip').click();
+  else if(key==='escape'){showPanel=false;outline();}
+  else if(key==='+'||key==='='||key==='-'){
+    event.preventDefault();showPanel=true;
+    update(next=>{const p=panelEdit(next);p.zoom=clamp((p.zoom||1)+(key==='-'?-.12:.12),1,3);});
+  }
+}
+function wireCanvas() {
+  const canvas=$('poster');
+  const at=event=>{
+    const box=canvas.getBoundingClientRect();
+    return [(event.clientX-box.left)*canvas.width/box.width,(event.clientY-box.top)*canvas.height/box.height];
+  };
+  canvas.addEventListener('pointerdown',event=>{
+    if(event.button!==0||drag)return;
+    const point=at(event), tiles=tilesFor(state,canvas.width,canvas.height);
+    const i=tiles.findIndex(tile=>inside(tile,...point));
+    if(i<0)return;
+    selectPanel(i);
+    const [l,t,r,b]=bounds(tiles[i]), p=panelAt(state,i);
+    drag={id:event.pointerId,i,point,width:r-l,height:b-t,x:p.x||0,y:p.y||0,flip:p.flip,before:clone(state)};
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener('pointermove',event=>{
+    if(drag?.id!==event.pointerId)return;
+    const [x,y]=at(event), dx=(x-drag.point[0])/drag.width,dy=(y-drag.point[1])/drag.height;
+    if(!drag.moved&&Math.hypot(dx,dy)<.004)return;
+    drag.moved=true;
+    const p=panelEdit(state,drag.i);
+    p.x=clamp(drag.x+dx*(drag.flip?-1:1),-3,3);p.y=clamp(drag.y+dy,-3,3);
+    requestPaint();
+  });
+  const end=event=>{
+    if(drag?.id!==event.pointerId)return;
+    if(drag.moved){stash(drag.before);persist();refreshHistory();}
+    drag=null;
+  };
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,end);
+  canvas.addEventListener('wheel',event=>{
+    if(!event.shiftKey)return;
+    event.preventDefault();showPanel=true;
+    update(next=>{const p=panelEdit(next);p.zoom=clamp((p.zoom||1)*Math.exp(-event.deltaY*.003),1,3);});
+  },{passive:false});
+}
+let exporting=false;
+async function exportSizes(indices) {
+  if(exporting)return;
+  exporting=true;
+  const project=clone(state), canvas=make('canvas');
+  $('save').disabled=$('saveAll').disabled=true;
+  try{
+    for(const index of indices){
+      const [w,h]=formats[index];
+      render(canvas,w,h,project);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      if(!blob)throw new Error('PNG encoding failed');
+      const url=URL.createObjectURL(blob);
+      const anchor=make('a',{href:url,download:'vice-royale-'+w+'x'+h+'.png'});
+      document.body.append(anchor);anchor.click();anchor.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),30000);
+    }
+    status(indices.length===1?'PNG ready.':'Three PNG downloads requested.');
+  }catch{status('Could not export the PNG.');}
+  finally{exporting=false;$('save').disabled=$('saveAll').disabled=false;}
+}
+async function start() {
+  if(shot==='cover')document.body.classList.add('cover');
+  const photo=query.get('photo');
+  const named=photo&&(own(sampleRoles,photo)?photo:own(sampleRoles,photo+'.jpg')?photo+'.jpg':null);
+  const overrides=['photo','layout','grade','intensity','caption'].some(key=>query.has(key));
+  const restored=!shot&&!overrides&&await restore();
+  if(!restored)state.photos=await loadSamples(named?[named]:sampleNames,false);
+  const layout=query.get('layout'), grade=query.get('grade'), intensity=query.get('intensity');
+  if(own(layouts,layout))state.layout=layout;
+  if(own(grades,grade))state.grade=grade;
+  if(intensity!==null&&intensity.trim()&&Number.isFinite(Number(intensity))&&Number(intensity)>=0&&Number(intensity)<=100)
+    state.intensity=Number(intensity);
+  if(query.has('caption'))state.title=query.get('caption').slice(0,36);
+  if(shot!=='cover')configure();
+  paintPreview();
+  if(shot){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{window.__shotReady=true;}));
+  }else wire();
+}
+start();
+</script>
+</body>
+</html>
