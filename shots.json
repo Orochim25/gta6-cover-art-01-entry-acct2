@@ -1,0 +1,6 @@
+[
+  {"name":"1-cover.jpg","query":"?shot=cover&caption=VICE%20ROYALE&layout=tiled-grid&grade=sunset-punch&intensity=100","w": 1080,"h": 1080},
+  {"name":"2-editor.jpg","query":"?shot=editor&caption=VICE%20ROYALE","w": 1280,"h": 720},
+  {"name":"3-cover.jpg","query":"?shot=cover&caption=VICE%20ROYALE&layout=six-panel-hero&grade=neon-coast&intensity=100","w": 1024,"h": 1280},
+  {"name":"4-cover.jpg","query":"?shot=cover&caption=VICE%20ROYALE&layout=hero-shards&grade=miami-heat&intensity=100","w": 1080,"h": 1080}
+]
